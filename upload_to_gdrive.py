@@ -82,25 +82,28 @@ def upload(file_path: Path, folder_id: str) -> str:
     media = MediaFileUpload(file_path, mimetype=MIME_XLSX, resumable=True)
 
     if existing:
-        file_id = existing[0]["id"]
-        service.files().update(
-            fileId=file_id,
+        result = service.files().update(
+            fileId=existing[0]["id"],
             media_body=media,
+            fields="id, webViewLink",
             supportsAllDrives=True,
         ).execute()
-        print(f"✓ Aktualisiert: {file_path.name} (id: {file_id})")
-        return file_id
+        action = "Aktualisiert"
     else:
         meta = {"name": file_path.name, "parents": [folder_id]}
         result = service.files().create(
             body=meta,
             media_body=media,
-            fields="id",
+            fields="id, webViewLink",
             supportsAllDrives=True,
         ).execute()
-        file_id = result["id"]
-        print(f"✓ Hochgeladen: {file_path.name} (id: {file_id})")
-        return file_id
+        action = "Hochgeladen"
+
+    file_id = result["id"]
+    link    = result.get("webViewLink") or f"https://drive.google.com/file/d/{file_id}/view"
+    print(f"✓ {action}: {file_path.name}")
+    print(f"  {link}")
+    return file_id
 
 
 if __name__ == "__main__":

@@ -1,4 +1,5 @@
 .env
-token.json
+token.json*
 GF_Prae*.xlsx
 *.json
+__pycache__/

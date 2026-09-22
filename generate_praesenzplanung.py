@@ -13,6 +13,7 @@ from openpyxl.formatting.rule import FormulaRule
 from openpyxl.worksheet.datavalidation import DataValidation
 
 HERE = Path(__file__).parent
+DUMP_PATH = HERE / "absences_raw_dump.json"
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
@@ -187,10 +188,9 @@ def fetch_absences(start: date, end: date) -> list:
             break
         page += 1
 
-    # Save raw dump for inspection
-    dump_path = HERE / "absences_raw_dump.json"
-    dump_path.write_text(json.dumps(all_raw, indent=2, ensure_ascii=False))
-    print(f"✓ Raw-Dump gespeichert: {dump_path.name}")
+    # Save raw dump for inspection (wird am Ende des Laufs wieder gelöscht)
+    DUMP_PATH.write_text(json.dumps(all_raw, indent=2, ensure_ascii=False))
+    print(f"✓ Raw-Dump gespeichert: {DUMP_PATH.name}")
 
     parsed = []
     for a in all_raw:
@@ -462,7 +462,13 @@ if __name__ == "__main__":
 
     absences = fetch_absences(start=month_start, end=month_end)
 
-    print("\nBaue Excel ...")
-    out = build_excel(absences, year, month)
+    try:
+        print("\nBaue Excel ...")
+        out = build_excel(absences, year, month)
+    finally:
+        # Raw-Dump enthält Personendaten – nach dem Lauf entfernen
+        if DUMP_PATH.exists():
+            DUMP_PATH.unlink()
+            print(f"✓ Raw-Dump gelöscht: {DUMP_PATH.name}")
 
     print(f"\n✓ Fertig: {out.name}")
