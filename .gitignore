@@ -3,3 +3,4 @@ token.json*
 GF_Prae*.xlsx
 *.json
 __pycache__/
+.venv/
